@@ -10,8 +10,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <style>
-* { box-sizing: border-box; }
-
 body {
     margin: 0;
     font-family: Arial;
@@ -23,7 +21,11 @@ body {
     height: 100vh;
 }
 
-#app { width: 100%; max-width: 420px; padding: 20px; }
+#app {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+}
 
 .card {
     background: rgba(0,0,0,0.25);
@@ -48,13 +50,9 @@ button {
     border: none;
     border-radius: 15px;
     font-size: 16px;
-    cursor: pointer;
 }
 
 button:active { transform: scale(0.97); }
-
-.correct { background: #2ecc71; }
-.wrong { background: #e74c3c; }
 
 .hidden { display: none; }
 
@@ -106,7 +104,7 @@ button:active { transform: scale(0.97); }
 
 <!-- END -->
 <div id="end" class="card hidden">
-    <h2>💀 Partie terminée</h2>
+    <h2>💀 Fin de partie</h2>
     <p id="finalScore"></p>
     <button onclick="goMenu()">Retour menu</button>
 </div>
@@ -123,8 +121,7 @@ const firebaseConfig = {
   projectId: "jeu-th",
   storageBucket: "jeu-th.firebasestorage.app",
   messagingSenderId: "638521506643",
-  appId: "1:638521506643:web:5be56612c945a5b9ccffa6",
-  measurementId: "G-4YDBXCDR5Q"
+  appId: "1:638521506643:web:5be56612c945a5b9ccffa6"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -143,7 +140,6 @@ const data = [
     {ville:"Cerfontaine", code:"TH014"}
 ];
 
-/* ================= VARIABLES ================= */
 let score, lives, timer, timeLeft, correct, mode, player;
 
 /* ================= START ================= */
@@ -165,22 +161,6 @@ function startGame(m) {
 function updateUI() {
     document.getElementById("score").innerText = "Score : " + score;
     document.getElementById("lives").innerText = "❤️".repeat(lives);
-}
-
-/* ================= TIMER ================= */
-function startTimer() {
-    timeLeft = 10;
-    document.getElementById("timer").innerText = timeLeft;
-
-    timer = setInterval(() => {
-        timeLeft--;
-        document.getElementById("timer").innerText = timeLeft;
-
-        if (timeLeft <= 0) {
-            clearInterval(timer);
-            loseLife();
-        }
-    }, 1000);
 }
 
 /* ================= QUESTION ================= */
@@ -221,12 +201,10 @@ function newQuestion() {
             clearInterval(timer);
 
             if (choices[i] === correct) {
-                btn.classList.add("correct");
                 score++;
                 updateUI();
                 setTimeout(newQuestion, 800);
             } else {
-                btn.classList.add("wrong");
                 loseLife();
             }
         };
@@ -237,14 +215,28 @@ function newQuestion() {
     startTimer();
 }
 
-/* ================= LOSE LIFE ================= */
+/* ================= TIMER ================= */
+function startTimer() {
+    timeLeft = 10;
+    document.getElementById("timer").innerText = timeLeft;
+
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            loseLife();
+        }
+    }, 1000);
+}
+
+/* ================= LOSE ================= */
 function loseLife() {
     lives--;
 
     let answer = mode === "ville" ? correct.code : correct.ville;
-
-    document.getElementById("result").innerText =
-        "❌ Bonne réponse : " + answer;
+    document.getElementById("result").innerText = "❌ Réponse : " + answer;
 
     updateUI();
 
@@ -255,7 +247,7 @@ function loseLife() {
     }
 }
 
-/* ================= END GAME ================= */
+/* ================= END ================= */
 function endGame() {
     document.getElementById("game").classList.add("hidden");
     document.getElementById("end").classList.remove("hidden");
@@ -266,7 +258,7 @@ function endGame() {
     saveScore();
 }
 
-/* ================= SAVE SCORE ================= */
+/* ================= SAVE ================= */
 function saveScore() {
     db.collection("scores").add({
         totem: player,
