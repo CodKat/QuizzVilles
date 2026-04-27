@@ -160,9 +160,29 @@ function startGame(m) {
 /* ================= UI ================= */
 function updateUI() {
     document.getElementById("score").innerText = "Score : " + score;
-    document.getElementById("lives").innerText = "❤️".repeat(lives);
-}
 
+    let hearts = Math.max(0, lives); // empêche négatif
+    document.getElementById("lives").innerText = "❤️".repeat(hearts);
+}
+function loseLife() {
+    lives--;
+
+    if (lives <= 0) {
+        lives = 0;
+        updateUI();
+        endGame();
+        return;
+    }
+
+    updateUI();
+
+    let answer = mode === "ville" ? correct.code : correct.ville;
+
+    document.getElementById("result").innerText =
+        "❌ Bonne réponse : " + answer;
+
+    setTimeout(newQuestion, 1500);
+}
 /* ================= QUESTION ================= */
 function newQuestion() {
     clearInterval(timer);
