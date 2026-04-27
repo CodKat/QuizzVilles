@@ -37,6 +37,7 @@ body {
 
 input {
     width: 100%;
+    max-width: 100%;
     padding: 12px;
     border-radius: 10px;
     border: none;
@@ -78,8 +79,8 @@ button:active { transform: scale(0.97); }
 <div id="menu" class="card">
     <h1>🎮 Quiz Villes</h1>
 
-    <input id="totemInput" placeholder="Ton totem">
-
+<input id="totemInput" placeholder="Ton totem" maxlength="25">
+    
     <button onclick="startGame('ville')">Ville → Code</button>
     <button onclick="startGame('code')">Code → Ville</button>
 
