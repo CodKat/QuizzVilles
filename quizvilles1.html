@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quiz villes</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+}
+
+#quiz-box, #end-screen, #menu {
+    background: rgba(0,0,0,0.3);
+    padding: 20px;
+    border-radius: 15px;
+    width: 300px;
+    margin: auto;
+    margin-top: 30px;
+}
+
+button {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+.correct { background-color: #2ecc71 !important; }
+.wrong { background-color: #e74c3c !important; }
+
+#end-screen, #quiz-box {
+    display: none;
+}
+</style>
+
+</head>
+<body>
+
+<h1>Quiz : Code ↔ Ville</h1>
+
+<div id="menu">
+    <h2>Choisis un mode</h2>
+    <button onclick="startGame('ville')">Ville → Code</button>
+    <button onclick="startGame('code')">Code → Ville</button>
+</div>
+
+<div id="quiz-box">
+    <div id="score">Score : 0</div>
+    <div id="lives">Vies : 3 ❤️</div>
+    <div id="timer">Temps : 10</div>
+
+    <p id="question"></p>
+    <div id="choices"></div>
+
+    <p id="result"></p>
+</div>
+
+<div id="end-screen">
+    <h2>💀 Partie terminée</h2>
+    <p id="final-score"></p>
+    <button onclick="goMenu()">Retour au menu</button>
+</div>
+
+<script>
+const data = [
+    {ville: "Walcourt", code: "TH001"},
+    {ville: "Rosée", code: "TH002"},
+    {ville: "Morialmé", code: "TH003"},
+    {ville: "Froidchapelle", code: "TH004"},
+    {ville: "Fraire", code: "TH005"},
+    {ville: "Rance", code: "TH008"},
+    {ville: "Petigny", code: "TH009"},
+    {ville: "Chimay", code: "TH011"},
+    {ville: "Cerfontaine", code: "TH014"}
+];
+
+let score, lives, timer, timeLeft, correctAnswer, mode;
+
+function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+}
+
+function startGame(selectedMode) {
+    mode = selectedMode;
+    score = 0;
+    lives = 3;
+
+    document.getElementById("menu").style.display = "none";
+    document.getElementById("quiz-box").style.display = "block";
+
+    updateUI();
+    newQuestion();
+}
+
+function updateUI() {
+    document.getElementById("score").innerText = "Score : " + score;
+    document.getElementById("lives").innerText = "Vies : " + lives + " ❤️";
+}
+
+function startTimer() {
+    timeLeft = 10;
+    document.getElementById("timer").innerText = "Temps : " + timeLeft;
+
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").innerText = "Temps : " + timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            loseLife("⏰ Temps écoulé !");
+        }
+    }, 1000);
+}
+
+function loseLife(message) {
+    lives--;
+    updateUI();
+
+    let correctText = (mode === "ville") ? correctAnswer.code : correctAnswer.ville;
+
+    document.getElementById("result").innerText =
+        message + " Bonne réponse : " + correctText;
+
+    if (lives <= 0) {
+        endGame();
+    } else {
+        setTimeout(newQuestion, 2000);
+    }
+}
+
+function newQuestion() {
+    clearInterval(timer);
+    document.getElementById("result").innerText = "";
+
+    correctAnswer = data[Math.floor(Math.random() * data.length)];
+
+    let choices = [correctAnswer];
+    while (choices.length < 4) {
+        let random = data[Math.floor(Math.random() * data.length)];
+        if (!choices.includes(random)) {
+            choices.push(random);
+        }
+    }
+
+    shuffle(choices);
+
+    let questionText, displayChoices;
+
+    if (mode === "ville") {
+        questionText = "Quel est le code pour : " + correctAnswer.ville + " ?";
+        displayChoices = choices.map(c => c.code);
+    } else {
+        questionText = "Quelle est la ville pour : " + correctAnswer.code + " ?";
+        displayChoices = choices.map(c => c.ville);
+    }
+
+    document.getElementById("question").innerText = questionText;
+
+    let choicesDiv = document.getElementById("choices");
+    choicesDiv.innerHTML = "";
+
+    displayChoices.forEach((text, index) => {
+        let btn = document.createElement("button");
+        btn.innerText = text;
+
+        btn.onclick = () => {
+            clearInterval(timer);
+
+            if (choices[index] === correctAnswer) {
+                btn.classList.add("correct");
+                document.getElementById("result").innerText = "✅ Bonne réponse !";
+                score++;
+                updateUI();
+                setTimeout(newQuestion, 1500);
+            } else {
+                btn.classList.add("wrong");
+                loseLife("❌ Mauvaise réponse !");
+            }
+        };
+
+        choicesDiv.appendChild(btn);
+    });
+
+    startTimer();
+}
+
+function endGame() {
+    document.getElementById("quiz-box").style.display = "none";
+    document.getElementById("end-screen").style.display = "block";
+    document.getElementById("final-score").innerText = "Score final : " + score;
+}
+
+function goMenu() {
+    document.getElementById("end-screen").style.display = "none";
+    document.getElementById("menu").style.display = "block";
+}
+</script>
+
+</body>
+</html>
