@@ -10,9 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <style>
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
@@ -25,11 +23,7 @@ body {
     height: 100vh;
 }
 
-#app {
-    width: 100%;
-    max-width: 420px;
-    padding: 20px;
-}
+#app { width: 100%; max-width: 420px; padding: 20px; }
 
 .card {
     background: rgba(0,0,0,0.25);
@@ -57,21 +51,23 @@ button {
     cursor: pointer;
 }
 
-button:active {
-    transform: scale(0.97);
-}
+button:active { transform: scale(0.97); }
 
 .correct { background: #2ecc71; }
 .wrong { background: #e74c3c; }
 
-.hidden {
-    display: none;
-}
+.hidden { display: none; }
 
 .info {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
+}
+
+#leaderboard {
+    text-align: left;
+    margin-top: 10px;
+    font-size: 14px;
 }
 </style>
 
@@ -82,14 +78,15 @@ button:active {
 
 <!-- MENU -->
 <div id="menu" class="card">
-    <h2>🏆 Classement</h2>
-<div id="leaderboard">Chargement...</div>
     <h1>🎮 Quiz Villes</h1>
 
     <input id="totemInput" placeholder="Ton totem">
 
     <button onclick="startGame('ville')">Ville → Code</button>
     <button onclick="startGame('code')">Code → Ville</button>
+
+    <h2>🏆 Classement</h2>
+    <div id="leaderboard">Chargement...</div>
 </div>
 
 <!-- GAME -->
@@ -269,7 +266,7 @@ function endGame() {
     saveScore();
 }
 
-/* ================= FIREBASE SAVE ================= */
+/* ================= SAVE SCORE ================= */
 function saveScore() {
     db.collection("scores").add({
         totem: player,
@@ -278,11 +275,37 @@ function saveScore() {
     });
 }
 
+/* ================= LIVE LEADERBOARD ================= */
+function listenLeaderboard() {
+    db.collection("scores")
+    .orderBy("score", "desc")
+    .limit(10)
+    .onSnapshot(snapshot => {
+
+        let html = "";
+
+        snapshot.forEach(doc => {
+            let d = doc.data();
+            html += `
+                <div>
+                    🧑 ${d.totem} — <b>${d.score}</b>
+                </div>
+            `;
+        });
+
+        document.getElementById("leaderboard").innerHTML =
+            html || "Aucun score";
+    });
+}
+
 /* ================= MENU ================= */
 function goMenu() {
     document.getElementById("end").classList.add("hidden");
     document.getElementById("menu").classList.remove("hidden");
 }
+
+/* ================= INIT ================= */
+listenLeaderboard();
 
 </script>
 
