@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Villes</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* APP */
+#app {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+}
+
+/* CARD */
+.card {
+    background: rgba(0,0,0,0.25);
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+/* INPUT */
+input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 10px;
+}
+
+/* BUTTONS */
+button {
+    width: 100%;
+    padding: 15px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 15px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+/* GAME */
+.info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+#question {
+    font-size: 22px;
+    margin: 15px 0;
+}
+
+/* STATES */
+.correct { background: #2ecc71; }
+.wrong { background: #e74c3c; }
+
+/* HIDDEN */
+.hidden {
+    display: none;
+}
+</style>
+
+</head>
+<body>
+
+<div id="app">
+
+<!-- MENU -->
+<div id="menu" class="card">
+    <h1>🎮 Quiz Villes</h1>
+
+    <input id="totemInput" placeholder="Ton totem">
+
+    <button onclick="startGame('ville')">Ville → Code</button>
+    <button onclick="startGame('code')">Code → Ville</button>
+</div>
+
+<!-- GAME -->
+<div id="game" class="card hidden">
+
+    <div class="info">
+        <div id="score">Score : 0</div>
+        <div id="lives">❤️❤️❤️</div>
+        <div id="timer">10</div>
+    </div>
+
+    <div id="question"></div>
+    <div id="choices"></div>
+    <p id="result"></p>
+
+</div>
+
+<!-- END -->
+<div id="end" class="card hidden">
+    <h1>💀 Terminé</h1>
+    <p id="finalScore"></p>
+    <button onclick="goMenu()">Retour menu</button>
+</div>
+
+</div>
+
+<script>
+const data = [
+    {ville: "Walcourt", code: "TH001"},
+    {ville: "Rosée", code: "TH002"},
+    {ville: "Morialmé", code: "TH003"},
+    {ville: "Froidchapelle", code: "TH004"},
+    {ville: "Fraire", code: "TH005"},
+    {ville: "Rance", code: "TH008"},
+    {ville: "Petigny", code: "TH009"},
+    {ville: "Chimay", code: "TH011"},
+    {ville: "Cerfontaine", code: "TH014"}
+];
+
+let score, lives, timer, timeLeft, correctAnswer, mode, player;
+
+function startGame(selectedMode) {
+    player = document.getElementById("totemInput").value || "Anonyme";
+    mode = selectedMode;
+    score = 0;
+    lives = 3;
+
+    document.getElementById("menu").classList.add("hidden");
+    document.getElementById("game").classList.remove("hidden");
+
+    updateUI();
+    newQuestion();
+}
+
+function updateUI() {
+    document.getElementById("score").innerText = "Score : " + score;
+    document.getElementById("lives").innerText = "❤️".repeat(lives);
+}
+
+function startTimer() {
+    timeLeft = 10;
+    document.getElementById("timer").innerText = timeLeft;
+
+    timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            loseLife();
+        }
+    }, 1000);
+}
+
+function loseLife() {
+    lives--;
+    updateUI();
+
+    let correct = mode === "ville" ? correctAnswer.code : correctAnswer.ville;
+
+    document.getElementById("result").innerText =
+        "❌ Mauvaise réponse → " + correct;
+
+    if (lives <= 0) {
+        endGame();
+    } else {
+        setTimeout(newQuestion, 1500);
+    }
+}
+
+function newQuestion() {
+    clearInterval(timer);
+    document.getElementById("result").innerText = "";
+
+    correctAnswer = data[Math.floor(Math.random() * data.length)];
+
+    let choices = [correctAnswer];
+    while (choices.length < 4) {
+        let r = data[Math.floor(Math.random() * data.length)];
+        if (!choices.includes(r)) choices.push(r);
+    }
+
+    choices.sort(() => Math.random() - 0.5);
+
+    let question, display;
+
+    if (mode === "ville") {
+        question = "Code de : " + correctAnswer.ville;
+        display = choices.map(c => c.code);
+    } else {
+        question = "Ville de : " + correctAnswer.code;
+        display = choices.map(c => c.ville);
+    }
+
+    document.getElementById("question").innerText = question;
+
+    let div = document.getElementById("choices");
+    div.innerHTML = "";
+
+    display.forEach((text, i) => {
+        let btn = document.createElement("button");
+        btn.innerText = text;
+
+        btn.onclick = () => {
+            clearInterval(timer);
+
+            if (choices[i] === correctAnswer) {
+                btn.classList.add("correct");
+                score++;
+                updateUI();
+                setTimeout(newQuestion, 800);
+            } else {
+                btn.classList.add("wrong");
+                loseLife();
+            }
+        };
+
+        div.appendChild(btn);
+    });
+
+    startTimer();
+}
+
+function endGame() {
+    document.getElementById("game").classList.add("hidden");
+    document.getElementById("end").classList.remove("hidden");
+
+    document.getElementById("finalScore").innerText =
+        player + " → Score : " + score;
+}
+
+function goMenu() {
+    document.getElementById("end").classList.add("hidden");
+    document.getElementById("menu").classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
