@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quiz Villes</title>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
 <style>
 * {
     box-sizing: border-box;
@@ -21,14 +25,12 @@ body {
     height: 100vh;
 }
 
-/* APP */
 #app {
     width: 100%;
     max-width: 420px;
     padding: 20px;
 }
 
-/* CARD */
 .card {
     background: rgba(0,0,0,0.25);
     padding: 20px;
@@ -37,7 +39,6 @@ body {
     backdrop-filter: blur(10px);
 }
 
-/* INPUT */
 input {
     width: 100%;
     padding: 12px;
@@ -46,7 +47,6 @@ input {
     margin-bottom: 10px;
 }
 
-/* BUTTONS */
 button {
     width: 100%;
     padding: 15px;
@@ -55,32 +55,23 @@ button {
     border-radius: 15px;
     font-size: 16px;
     cursor: pointer;
-    transition: 0.2s;
 }
 
 button:active {
     transform: scale(0.97);
 }
 
-/* GAME */
+.correct { background: #2ecc71; }
+.wrong { background: #e74c3c; }
+
+.hidden {
+    display: none;
+}
+
 .info {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
-}
-
-#question {
-    font-size: 22px;
-    margin: 15px 0;
-}
-
-/* STATES */
-.correct { background: #2ecc71; }
-.wrong { background: #e74c3c; }
-
-/* HIDDEN */
-.hidden {
-    display: none;
 }
 </style>
 
@@ -108,7 +99,7 @@ button:active {
         <div id="timer">10</div>
     </div>
 
-    <div id="question"></div>
+    <h2 id="question"></h2>
     <div id="choices"></div>
     <p id="result"></p>
 
@@ -116,7 +107,7 @@ button:active {
 
 <!-- END -->
 <div id="end" class="card hidden">
-    <h1>💀 Terminé</h1>
+    <h2>💀 Partie terminée</h2>
     <p id="finalScore"></p>
     <button onclick="goMenu()">Retour menu</button>
 </div>
@@ -124,23 +115,43 @@ button:active {
 </div>
 
 <script>
+
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyBvuufBEZgzpN-Kp0PxtJJ5odVZA2tGQ7M",
+  authDomain: "jeu-th.firebaseapp.com",
+  databaseURL: "https://jeu-th-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "jeu-th",
+  storageBucket: "jeu-th.firebasestorage.app",
+  messagingSenderId: "638521506643",
+  appId: "1:638521506643:web:5be56612c945a5b9ccffa6",
+  measurementId: "G-4YDBXCDR5Q"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* ================= DATA ================= */
 const data = [
-    {ville: "Walcourt", code: "TH001"},
-    {ville: "Rosée", code: "TH002"},
-    {ville: "Morialmé", code: "TH003"},
-    {ville: "Froidchapelle", code: "TH004"},
-    {ville: "Fraire", code: "TH005"},
-    {ville: "Rance", code: "TH008"},
-    {ville: "Petigny", code: "TH009"},
-    {ville: "Chimay", code: "TH011"},
-    {ville: "Cerfontaine", code: "TH014"}
+    {ville:"Walcourt", code:"TH001"},
+    {ville:"Rosée", code:"TH002"},
+    {ville:"Morialmé", code:"TH003"},
+    {ville:"Froidchapelle", code:"TH004"},
+    {ville:"Fraire", code:"TH005"},
+    {ville:"Rance", code:"TH008"},
+    {ville:"Petigny", code:"TH009"},
+    {ville:"Chimay", code:"TH011"},
+    {ville:"Cerfontaine", code:"TH014"}
 ];
 
-let score, lives, timer, timeLeft, correctAnswer, mode, player;
+/* ================= VARIABLES ================= */
+let score, lives, timer, timeLeft, correct, mode, player;
 
-function startGame(selectedMode) {
+/* ================= START ================= */
+function startGame(m) {
+    mode = m;
     player = document.getElementById("totemInput").value || "Anonyme";
-    mode = selectedMode;
+
     score = 0;
     lives = 3;
 
@@ -151,11 +162,13 @@ function startGame(selectedMode) {
     newQuestion();
 }
 
+/* ================= UI ================= */
 function updateUI() {
     document.getElementById("score").innerText = "Score : " + score;
     document.getElementById("lives").innerText = "❤️".repeat(lives);
 }
 
+/* ================= TIMER ================= */
 function startTimer() {
     timeLeft = 10;
     document.getElementById("timer").innerText = timeLeft;
@@ -171,29 +184,14 @@ function startTimer() {
     }, 1000);
 }
 
-function loseLife() {
-    lives--;
-    updateUI();
-
-    let correct = mode === "ville" ? correctAnswer.code : correctAnswer.ville;
-
-    document.getElementById("result").innerText =
-        "❌ Mauvaise réponse → " + correct;
-
-    if (lives <= 0) {
-        endGame();
-    } else {
-        setTimeout(newQuestion, 1500);
-    }
-}
-
+/* ================= QUESTION ================= */
 function newQuestion() {
     clearInterval(timer);
     document.getElementById("result").innerText = "";
 
-    correctAnswer = data[Math.floor(Math.random() * data.length)];
+    correct = data[Math.floor(Math.random() * data.length)];
 
-    let choices = [correctAnswer];
+    let choices = [correct];
     while (choices.length < 4) {
         let r = data[Math.floor(Math.random() * data.length)];
         if (!choices.includes(r)) choices.push(r);
@@ -204,10 +202,10 @@ function newQuestion() {
     let question, display;
 
     if (mode === "ville") {
-        question = "Code de : " + correctAnswer.ville;
+        question = "Code de : " + correct.ville;
         display = choices.map(c => c.code);
     } else {
-        question = "Ville de : " + correctAnswer.code;
+        question = "Ville de : " + correct.code;
         display = choices.map(c => c.ville);
     }
 
@@ -223,7 +221,7 @@ function newQuestion() {
         btn.onclick = () => {
             clearInterval(timer);
 
-            if (choices[i] === correctAnswer) {
+            if (choices[i] === correct) {
                 btn.classList.add("correct");
                 score++;
                 updateUI();
@@ -240,18 +238,50 @@ function newQuestion() {
     startTimer();
 }
 
+/* ================= LOSE LIFE ================= */
+function loseLife() {
+    lives--;
+
+    let answer = mode === "ville" ? correct.code : correct.ville;
+
+    document.getElementById("result").innerText =
+        "❌ Bonne réponse : " + answer;
+
+    updateUI();
+
+    if (lives <= 0) {
+        endGame();
+    } else {
+        setTimeout(newQuestion, 1500);
+    }
+}
+
+/* ================= END GAME ================= */
 function endGame() {
     document.getElementById("game").classList.add("hidden");
     document.getElementById("end").classList.remove("hidden");
 
     document.getElementById("finalScore").innerText =
-        player + " → Score : " + score;
+        player + " → " + score + " points";
+
+    saveScore();
 }
 
+/* ================= FIREBASE SAVE ================= */
+function saveScore() {
+    db.collection("scores").add({
+        totem: player,
+        score: score,
+        date: new Date()
+    });
+}
+
+/* ================= MENU ================= */
 function goMenu() {
     document.getElementById("end").classList.add("hidden");
     document.getElementById("menu").classList.remove("hidden");
 }
+
 </script>
 
 </body>
