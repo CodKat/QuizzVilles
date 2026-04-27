@@ -72,6 +72,11 @@ button:active {
     margin-top: 10px;
     font-size: 14px;
 }
+#result {
+   font-size: 18px;
+   font-weight: bold;
+   margin-top: 10px;
+}
 </style>
 
 </head>
@@ -208,12 +213,20 @@ function newQuestion() {
 
             clearInterval(timer);
 
-            if (choices[i] === correct) {
-                score++;
-                updateUI();
-                setTimeout(newQuestion, 800);
+           if (choices[i] === correct) {
+    locked = true;
+
+    score++;
+    updateUI();
+
+    document.getElementById("result").innerText =
+        "🎉 Bonne réponse !";
+
+    setTimeout(newQuestion, 800);
+}
             } else {
-                loseLife();
+            document.getElementById("result").innerText =
+    "❌ Mauvaise réponse ! La bonne réponse était : " + answer;
             }
         };
 
