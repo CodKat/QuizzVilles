@@ -35,7 +35,7 @@ body {
 }
 
 input {
-    width: 75%;
+    width: 100%;
     max-width: 100%;
     padding: 12px;
     border-radius: 10px;
@@ -57,9 +57,7 @@ button:active {
     transform: scale(0.97);
 }
 
-.hidden {
-    display: none;
-}
+.hidden { display: none; }
 
 .info {
     display: flex;
@@ -72,10 +70,11 @@ button:active {
     margin-top: 10px;
     font-size: 14px;
 }
+
 #result {
-   font-size: 18px;
-   font-weight: bold;
-   margin-top: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
 }
 </style>
 
@@ -108,6 +107,7 @@ button:active {
 
     <h2 id="question"></h2>
     <div id="choices"></div>
+
     <p id="result"></p>
 
 </div>
@@ -213,20 +213,16 @@ function newQuestion() {
 
             clearInterval(timer);
 
-           if (choices[i] === correct) {
-    locked = true;
+            if (choices[i] === correct) {
+                score++;
+                updateUI();
 
-    score++;
-    updateUI();
+                document.getElementById("result").innerText =
+                    "🎉 Bonne réponse !";
 
-    document.getElementById("result").innerText =
-        "🎉 Bonne réponse !";
-
-    setTimeout(newQuestion, 800);
-}
+                setTimeout(newQuestion, 800);
             } else {
-            document.getElementById("result").innerText =
-    "❌ Mauvaise réponse ! La bonne réponse était : " + answer;
+                loseLife();
             }
         };
 
@@ -260,7 +256,9 @@ function loseLife() {
     lives--;
 
     let answer = mode === "ville" ? correct.code : correct.ville;
-    document.getElementById("result").innerText = "❌ Réponse : " + answer;
+
+    document.getElementById("result").innerText =
+        "❌ Mauvaise réponse ! La bonne réponse était : " + answer;
 
     updateUI();
 
@@ -291,7 +289,7 @@ function saveScore() {
     });
 }
 
-/* ================= LEADERBOARD LIVE ================= */
+/* ================= LEADERBOARD ================= */
 function listenLeaderboard() {
     db.collection("scores")
     .orderBy("score", "desc")
